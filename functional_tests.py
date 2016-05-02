@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import unittest
-
+import time #useful for time.sleep(10) to look for test errors
 
 class NewVisitorTest(unittest.TestCase):
 
