@@ -18,42 +18,22 @@ class HomePageTest(TestCase):
         expected_html = render_to_string('home.html')
         self.assertEqual(response.content.decode(), expected_html)
 
-    def test_homepage_can_save_POST_request(self):
-        #spacing: setup, exercise, assert
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = 'A new list item'
-
-        response = home_page(request)
-
-        self.assertEqual(Item.objects.count(), 1) #objects.all().count()
-        new_item = Item.objects.first()
-        self.assertEqual(new_item.text, 'A new list item')
-
-    def test_homepage_redirect_after_post(self):
-        request = HttpRequest()
-        request.method = 'POST'
-        request.POST['item_text'] = 'A new list item'
-
-        response = home_page(request)
-
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/')
-
     def test_homepage_saves_items_only_when_necessary(self):
         request = HttpRequest()
         home_page(request)
         self.assertEqual(Item.objects.count(), 0)
 
-    def test_homepage_displays_all_list_items(self):
+class ListViewTest(TestCase):
+
+    def test_displays_all_list_items(self):
         Item.objects.create(text='item 1')
         Item.objects.create(text='item 2')
 
-        request = HttpRequest()
-        response = home_page(request)
+        response = self.client.get('/lists/da-only-list/')
 
-        self.assertIn('item 1', response.content.decode())
-        self.assertIn('item 2', response.content.decode())
+        self.assertContains(response, 'item 1')
+        self.assertContains(response, 'item 2')
+
 
 class ItemModelTest(TestCase):
 
@@ -73,3 +53,24 @@ class ItemModelTest(TestCase):
         second_saved_item = saved_items[1]
         self.assertEqual(first_saved_item.text, 'First list item')
         self.assertEqual(second_saved_item.text, 'second list item')
+
+class NewListTest(TestCase):
+
+    def test_saving_POST_request(self):
+        #spacing: setup, exercise, assert
+        self.client.post(
+            '/lists/new',
+            data={"item_text": "A new list item"}
+        )
+
+        self.assertEqual(Item.objects.count(), 1) #objects.all().count()
+        new_item = Item.objects.first()
+        self.assertEqual(new_item.text, 'A new list item')
+
+    def test_redirect_after_POST(self):
+        response = self.client.post(
+            '/lists/new',
+            data={"item_text": "A new list item"}
+        )
+
+        self.assertRedirects(response, '/lists/da-only-list/')
