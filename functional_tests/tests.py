@@ -3,9 +3,11 @@ from selenium.webdriver.common.keys import Keys
 import unittest
 import time #useful for time.sleep(10) to look for test errors
 from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 
-
-class NewVisitorTest(LiveServerTestCase):
+#remember that we can't find Static files automagically without
+#inheriting from this class !
+class NewVisitorTest(StaticLiveServerTestCase):
 
     def setUp(self):
         self.browser = webdriver.Firefox()
